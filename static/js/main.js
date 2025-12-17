@@ -1,4 +1,5 @@
-const URL_ws = `ws://${window.location.host}/ws/transfer`
+const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+const URL_ws = `${protocol}://${window.location.host}/ws/transfer`
 const NUM_STREAMS = 4
 let ws_control;
 let ws_streams = []
