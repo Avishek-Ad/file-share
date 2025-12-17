@@ -1,0 +1,149 @@
+{% extends "transfer/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="relative min-h-screen flex items-center justify-center bg-linear-to-br from-base-200 via-base-300 to-base-200 overflow-hidden">
+
+    <!-- Animated cloud blobs -->
+    <div class="absolute -top-32 -left-32 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse"></div>
+    <div class="absolute top-1/3 -right-32 w-96 h-96 bg-secondary/20 rounded-full blur-3xl animate-pulse"></div>
+    <div class="absolute bottom-0 left-1/3 w-96 h-96 bg-accent/20 rounded-full blur-3xl animate-pulse"></div>
+
+    <!-- Radar circle -->
+    <div class="absolute w-125 h-125 rounded-full border border-base-content/10 animate-spin-slow"></div>
+    <div class="absolute w-87.5 h-87.5 rounded-full border border-base-content/10"></div>
+    <div class="absolute w-50 h-50 rounded-full border border-base-content/10"></div>
+
+    <!-- Main content -->
+    <div class="relative z-10 flex flex-col items-center gap-10">
+
+        <!-- Header -->
+        <div class="text-center space-y-2">
+            <h1 class="text-4xl font-extrabold tracking-tight">
+                File Share [<span id="group-id-span">{{request.GET.group}}</span>]
+            </h1>
+            <p class="text-sm text-base-content/70">
+                Scanning for nearby devices…
+            </p>
+            <p class="text-xs text-info text-soft">NOTE: keep file under 100mb</p>
+        </div>
+
+        <!-- Online users card -->
+        <div class="card w-96 bg-base-100/80 backdrop-blur shadow-2xl border border-base-300">
+            <div class="card-body">
+                <span
+                    class="card-title text-base-content text-lg font-semibold"
+                    id="sub-title"
+                ></span>
+
+                <ul
+                    id="all-users"
+                    class="mt-4 flex flex-col gap-2 text-base"
+                ></ul>
+            </div>
+        </div>
+
+        <!-- Request / action card -->
+        <div
+            id="container"
+            class="hidden card w-96 bg-base-100/90 backdrop-blur shadow-2xl border border-base-300 animate-fade-in"
+        >
+            <div class="card-body gap-4">
+
+                <span class="card-title text-base-content text-lg">
+                    Target Device
+                </span>
+
+                <p
+                    id="container-title"
+                    class="text-lg font-bold text-primary tracking-wide"
+                ></p>
+
+                <!-- file stream -->
+                <div
+                    id="start-file-stream"
+                    class="hidden flex flex-col gap-3 bg-base-200/60 p-3 rounded-lg"
+                >
+                    <input
+                        type="file"
+                        id="file-choosen"
+                        class="file-input file-input-bordered file-input-sm w-full"
+                        accept="*/*"
+                    />
+
+                    <button
+                        id="start-stream-button"
+                        class="btn btn-primary btn-sm w-full"
+                    >
+                        Send File
+                    </button>
+                    <button
+                        id="transfer-cancel-button"
+                        class="btn btn-error btn-sm"
+                    >
+                        CancelT
+                    </button>
+                </div>
+
+                <!-- actions -->
+                <div class="mt-2 flex justify-end gap-3">
+                    <button
+                        id="send-file-button"
+                        class="btn btn-primary btn-sm"
+                    >
+                        Initiate Transfer
+                    </button>
+
+                    <button
+                        id="hide-container-button"
+                        class="btn btn-ghost btn-sm"
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirm or deny card -->
+        <div
+            id="confirm-or-deny"
+            class="hidden card w-96 bg-base-100/90 backdrop-blur shadow-2xl border border-base-300 animate-fade-in"
+        >
+            <div class="card-body gap-4">
+
+                <span class="card-title text-base-content text-lg">
+                    Incoming Signal
+                </span>
+
+                <p class="text-base font-medium">
+                    Device
+                    <span class="font-bold text-primary" id="sender-id-show"></span>
+                    wants to send a file.
+                </p>
+
+                <div class="mt-2 flex justify-end gap-3">
+                    <button
+                        id="receive-accept-button"
+                        class="btn btn-success btn-sm"
+                    >
+                        Accept
+                    </button>
+
+                    <button
+                        id="receive-cancel-button"
+                        class="btn btn-ghost btn-sm"
+                    >
+                        Ignore
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="{% static 'js/main.js' %}"></script>
+
+{% endblock %}

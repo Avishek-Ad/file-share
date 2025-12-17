@@ -1,0 +1,35 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        {% block head_title %}
+            Local File Server
+        {% endblock %}
+    </title>
+
+    <link href="{% static 'css/output.css' %}" rel="stylesheet">
+    
+    {% block extra_head %}
+
+    {% endblock %}
+</head>
+<body>
+     <a
+    href="https://github.com/YOUR_USERNAME/YOUR_REPO"
+    target="_blank"
+    rel="noopener noreferrer"
+    class="fixed top-4 right-4 z-50 btn btn-sm bg-base-100/80 backdrop-blur border border-base-300 shadow"
+    >
+    ⭐ GitHub
+    </a>
+
+    {% block content %}
+    {% endblock %}
+    
+</body>
+</html>

@@ -1,0 +1,37 @@
+<dialog id="group_join_modal" class="modal">
+  <form
+    method="GET"
+    action="{% url 'discover_page' %}"
+    class="modal-box bg-base-100/90 backdrop-blur border border-base-300 shadow-xl rounded-xl p-5 flex flex-col gap-3"
+  >
+    <button
+      type="button"
+      onclick="group_join_modal.close()"
+      class="btn btn-xs btn-circle btn-ghost absolute right-2 top-2"
+    >
+      ✕
+    </button>
+
+    <h3 class="text-lg font-semibold">
+      Join / Create Group
+    </h3>
+
+    <p class="text-xs text-base-content/60">
+      Enter a group ID to continue
+    </p>
+
+    <div class="flex gap-2">
+      <input
+        type="text"
+        name="group"
+        placeholder="Group ID"
+        required
+        class="input input-bordered input-sm w-full"
+      />
+
+      <button type="submit" class="btn btn-primary btn-sm">
+        Go
+      </button>
+    </div>
+  </form>
+</dialog>
