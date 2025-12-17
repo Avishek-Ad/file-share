@@ -1,5 +1,5 @@
-# LocalShare – Multi-Stream WebSocket File Transfer
-LocalShare is a real-time file transfer web app built with **Django Channels** and **WebSockets**. It enables fast peer-to-peer style transfers by splitting files into **multiple parallel streams** and sending them concurrently. Designed mainly for **LAN / group-based usage**.
+# FileShare – Multi-Stream WebSocket File Transfer
+FileShare is a real-time file transfer web app built with **Django Channels** and **WebSockets**. It enables fast peer-to-peer style transfers by splitting files into **multiple parallel streams** and sending them concurrently. Designed mainly for **group-based usage**.
 
 ---
 
@@ -26,13 +26,15 @@ LocalShare is a real-time file transfer web app built with **Django Channels** a
 Each user maintains:  
 - **1 Control WebSocket**: user discovery, transfer request/response, start/end signals  
 - **N Data WebSockets (default: 4)**: parallel binary file streaming
+
+```text
 Sender
 ├── Control WS
 ├── Data WS #1 ──►
 ├── Data WS #2 ──► Receiver
 ├── Data WS #3 ──►
 └── Data WS #4 ──►
----
+```
 
 ## File Transfer Flow
 1. Users join a group  
@@ -51,17 +53,24 @@ Sender
 **Frontend**
 ```js
 const NUM_STREAMS = 4;
+
 const CHUNK_SIZE = 128 * 1024; // 128 KB
+```
 
 **Backend Groups**
+```text
 - file-transfer-group-{group_id}
 - user-control-{user_id}
 - user-data-{user_id}-stream-{stream_id}
+```
 
 ## Running the Project
+```py
 pip install django channels
 python manage.py migrate
 python manage.py runserver
+```
 
-License
+## License
+
 Distributed under the MIT License. See LICENSE for more information.
