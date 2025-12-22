@@ -5,12 +5,20 @@ import json
 ONLINE_USERS = {}
 SENDER_RECEIVER_MAP = {}
 
-class TransferConsumer(AsyncWebsocketConsumer):
+class TransferConsumerLocal(AsyncWebsocketConsumer):
     async def connect(self):
+        headers = dict(self.scope["headers"])
+
+        x_forwarded_for = headers.get(b"x-forwarded-for")
+        if x_forwarded_for:
+            public_ip = x_forwarded_for.decode().split(",")[0].strip()
+        else:
+            public_ip = self.scope["client"][0]
+
         qs = parse_qs(self.scope["query_string"].decode())
         self.user_id = qs.get("myid", [None])[0]
         self.purpose = qs.get("purpose", [None])[0]
-        self.group_id = qs.get('group_id', [None])[0]
+        self.group_id = f"only-public-{public_ip}"
         self.group_name = f"file-transfer-group-{self.group_id}"
         
         # only control channel will be here
@@ -117,14 +125,6 @@ class TransferConsumer(AsyncWebsocketConsumer):
                         'message_type': data['type'],
                     }
                 )
-            elif data['type'] == 'response_cancel':
-                await self.channel_layer.group_send(
-                    f"user-control-{data['sender_id']}",
-                    {
-                        'type': 'confirm.or.deny.response.cancel',
-                        'receiver_id': data['receiver_id'],
-                    }
-                )
             elif data['type'] == 'transfer_start':
                 SENDER_RECEIVER_MAP[self.user_id] = data['receiver_id']
                 await self.channel_layer.group_send(
@@ -181,10 +181,6 @@ class TransferConsumer(AsyncWebsocketConsumer):
         receiver_id = event['receiver_id']
         message_type = event['message_type']
         await self.send(text_data=json.dumps({'type':message_type, 'receiver_id':receiver_id}))
-    
-    async def confirm_or_deny_response_cancel(self, event):
-        receiver_id = event['receiver_id']
-        await self.send(text_data=json.dumps({'type':'response_cancel', 'receiver_id':receiver_id}))
 
     async def file_transfer_start(self, event):
         await self.send(text_data=json.dumps({

@@ -1,5 +1,5 @@
 const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-const URL_ws = `${protocol}://${window.location.host}/ws/transfer`
+const URL_ws = `${protocol}://${window.location.host}/ws/transfer/local`
 
 // Global State
 let ws_control, ws_data;
@@ -69,25 +69,18 @@ function setup_ui_listeners() {
 function toggle_send_button_loading(isLoading, text) {
     const btn = document.getElementById('send-file-button');
     btn.disabled = isLoading;
-
     if (isLoading) {
-        btn.classList.remove('btn-primary', 'shadow-primary/20');
-        btn.classList.add('bg-slate-800/50', 'text-slate-400', 'border-white/5', 'cursor-not-allowed');
-        
-        btn.innerHTML = `
-            <div class="flex items-center gap-2">
-                <span class="loading loading-spinner loading-xs"></span>
-                <span class="font-mono text-[11px] uppercase tracking-widest">${text}</span>
-            </div>`;
+        btn.classList.remove('btn-primary');
+        btn.classList.add('btn-ghost');
     } else {
-        btn.classList.add('text-white', 'btn-primary', 'shadow-lg', 'shadow-primary/20');
-        btn.classList.remove('bg-slate-800/50', 'text-slate-500', 'border-white/5', 'cursor-not-allowed', 'bg-ghost');
-        
-        btn.innerHTML = `<span class="uppercase font-bold tracking-tight">${text}</span>`;
+        btn.classList.add('btn-primary');
+        btn.classList.remove('btn-ghost');
     }
+    btn.innerHTML = text;
 }
 
 function attach_confirm_buttons_listeners() {
+    // Re-query elements as they might have been re-injected by reset_confirm_or_deny_container_content
     const receive_cancel = document.getElementById('receive-cancel-button');
     const receive_accept = document.getElementById('receive-accept-button');
 
@@ -95,12 +88,6 @@ function attach_confirm_buttons_listeners() {
         receive_cancel.addEventListener('click', () => {
              hide_card('confirm-or-deny');
              // Optional: Send rejection message here
-             const sender_id_val = document.getElementById('sender-id-show').innerHTML;
-             ws_control.send(JSON.stringify({
-                'type': 'response_cancel',
-                'sender_id': sender_id_val,
-                'receiver_id': myid
-             }))
         });
     }
 
@@ -172,16 +159,10 @@ function send_feedback_flow_control(bps, b_level) {
 
 // --- WebSocket Setup ---
 async function establish_ws_connection() {
-    const constgroup_id = document.getElementById("group-id-span").innerText.trim();
-    if (!constgroup_id) {
-        document.getElementById("sub-title").innerHTML = `<div class="text-center text-sm text-error">No group provided <a href="/" class="link link-error ml-2">Go back</a></div>`;
-        return;
-    }
-
-    ws_control = new WebSocket(`${URL_ws}/?myid=${myid}&purpose=control&group_id=${constgroup_id}`);
+    ws_control = new WebSocket(`${URL_ws}/?myid=${myid}&purpose=control`);
     await setup_control_listeners(ws_control);
 
-    ws_data = new WebSocket(`${URL_ws}/?myid=${myid}&purpose=data&group_id=${constgroup_id}`);
+    ws_data = new WebSocket(`${URL_ws}/?myid=${myid}&purpose=data`);
     setup_stream_websocket_listeners(ws_data);
 }
 
@@ -207,11 +188,6 @@ async function setup_control_listeners(ws) {
         
         if (data.type === 'response') {
             await streaming_file_multi_ws_server();
-        }
-
-        if (data.type === 'response_cancel') {
-            console.log("Received ignored")
-            toggle_send_button_loading(false, "Initiate Transfer")
         }
         
         if (data.type === 'transfer_start') {
@@ -544,7 +520,6 @@ function reset_confirm_or_deny_container_content() {
     // Crucial: Re-attach the event listeners to the new buttons
     attach_confirm_buttons_listeners();
 }
-
 function show_card(id) {
     const el = document.getElementById(id);
     el.classList.remove('hidden');

@@ -29,6 +29,7 @@ DEBUG = True
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
+    '192.168.1.74',
     'file-share-4f54.onrender.com',  # Add your Render URL here
 ]
 
@@ -78,19 +79,19 @@ TEMPLATES = [
 ASGI_APPLICATION = 'core.asgi.application'
 
 
-# CHANNEL_LAYERS = {
-#     'default': {
-#         "BACKEND":"channels.layers.InMemoryChannelLayer"
-#     }
-# }
 CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [("redis://red-d4pdbkvpm1nc73cek08g:6379")],
-        },
-    },
+    'default': {
+        "BACKEND":"channels.layers.InMemoryChannelLayer"
+    }
 }
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_redis.core.RedisChannelLayer",
+#         "CONFIG": {
+#             "hosts": [("redis://red-d4pdbkvpm1nc73cek08g:6379")],
+#         },
+#     },
+# }
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases

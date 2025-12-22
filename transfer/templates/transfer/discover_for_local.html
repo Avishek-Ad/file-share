@@ -1,8 +1,9 @@
 {% extends "transfer/base.html" %}
 {% load static %}
 
+
 {% block head_title %}
-    private group
+    Local Network
 {% endblock %}
 
 {% block content %}
@@ -37,7 +38,7 @@
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                         <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                     </span>
-                    GROUP: <span id="group-id-span">{{request.GET.group}}</span>
+                    Local Network
                 </div>
                 <p class="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold mt-2">
                     Scanning for active nodes...
@@ -123,6 +124,6 @@
 </style>
 
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-<script src="{% static 'js/main.js' %}"></script>
+<script src="{% static 'js/main_for_local.js' %}"></script>
 
 {% endblock %}

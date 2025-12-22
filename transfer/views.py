@@ -5,3 +5,6 @@ def home(request):
 
 def discover(request):
     return render(request, 'transfer/discover.html')
+
+def local_discovery(request):
+    return render(request, 'transfer/discover_for_local.html')

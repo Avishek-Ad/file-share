@@ -1,37 +1,57 @@
-<dialog id="group_join_modal" class="modal">
+<dialog id="group_join_modal" class="modal backdrop-blur-sm">
   <form
     method="GET"
     action="{% url 'discover_page' %}"
-    class="modal-box bg-base-100/90 backdrop-blur border border-base-300 shadow-xl rounded-xl p-5 flex flex-col gap-3"
+    class="modal-box bg-slate-800/80 backdrop-blur-2xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] rounded-2xl p-6 flex flex-col gap-4 animate-in zoom-in duration-200"
   >
     <button
       type="button"
       onclick="group_join_modal.close()"
-      class="btn btn-xs btn-circle btn-ghost absolute right-2 top-2"
+      class="btn btn-xs btn-circle btn-ghost absolute right-3 top-3 text-slate-400 hover:text-white transition-colors"
     >
       ✕
     </button>
 
-    <h3 class="text-lg font-semibold">
-      Join / Create Group
-    </h3>
+    <div class="space-y-1">
+      <h3 class="text-xl font-bold text-white tracking-tight uppercase italic">
+        Initialize Session
+      </h3>
+      <p class="text-[10px] font-mono uppercase tracking-[0.2em] text-primary font-bold">
+        Secure Tunnel Protocol
+      </p>
+    </div>
 
-    <p class="text-xs text-base-content/60">
-      Enter a group ID to continue
+    <div class="divider my-0 opacity-10"></div>
+
+    <p class="text-sm text-slate-400">
+        Enter a unique Group ID to sync with other nodes.
     </p>
 
-    <div class="flex gap-2">
-      <input
-        type="text"
-        name="group"
-        placeholder="Group ID"
-        required
-        class="input input-bordered input-sm w-full"
-      />
+    <div class="flex flex-col sm:flex-row gap-2 pt-2">
+      <div class="relative w-full">
+        <input
+          type="text"
+          name="group"
+          placeholder="e.g. ALPHA-NODE-1"
+          required
+          class="input input-bordered input-md w-full bg-slate-900/50 border-white/10 text-white font-mono placeholder:text-slate-600 focus:border-primary focus:ring-1 focus:ring-primary/50"
+        />
+      </div>
 
-      <button type="submit" class="btn btn-primary btn-sm">
-        Go
+      <button type="submit" class="btn btn-primary btn-md px-6 shadow-lg shadow-primary/20 hover:scale-105 transition-transform uppercase font-bold">
+        Connect
       </button>
     </div>
+
+    <div class="flex items-center gap-2 mt-2 opacity-40">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 00-2 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+        <span class="text-[9px] uppercase tracking-widest font-mono">End-to-End P2P Signaling</span>
+    </div>
+  </form>
+
+  <form method="dialog" class="modal-backdrop bg-slate-950/60">
+    <button>close</button>
   </form>
 </dialog>
