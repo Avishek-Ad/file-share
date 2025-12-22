@@ -69,14 +69,22 @@ function setup_ui_listeners() {
 function toggle_send_button_loading(isLoading, text) {
     const btn = document.getElementById('send-file-button');
     btn.disabled = isLoading;
+
     if (isLoading) {
-        btn.classList.remove('btn-primary');
-        btn.classList.add('btn-ghost');
+        btn.classList.remove('btn-primary', 'shadow-primary/20');
+        btn.classList.add('bg-slate-800/50', 'text-slate-400', 'border-white/5', 'cursor-not-allowed');
+        
+        btn.innerHTML = `
+            <div class="flex items-center gap-2">
+                <span class="loading loading-spinner loading-xs"></span>
+                <span class="font-mono text-[11px] uppercase tracking-widest">${text}</span>
+            </div>`;
     } else {
-        btn.classList.add('btn-primary');
-        btn.classList.remove('btn-ghost');
+        btn.classList.add('text-white', 'btn-primary', 'shadow-lg', 'shadow-primary/20');
+        btn.classList.remove('bg-slate-800/50', 'text-slate-500', 'border-white/5', 'cursor-not-allowed', 'bg-ghost');
+        
+        btn.innerHTML = `<span class="uppercase font-bold tracking-tight">${text}</span>`;
     }
-    btn.innerHTML = text;
 }
 
 function attach_confirm_buttons_listeners() {
@@ -88,6 +96,12 @@ function attach_confirm_buttons_listeners() {
         receive_cancel.addEventListener('click', () => {
              hide_card('confirm-or-deny');
              // Optional: Send rejection message here
+             const sender_id_val = document.getElementById('sender-id-show').innerHTML;
+             ws_control.send(JSON.stringify({
+                'type': 'response_cancel',
+                'sender_id': sender_id_val,
+                'receiver_id': myid
+             }))
         });
     }
 
@@ -188,6 +202,11 @@ async function setup_control_listeners(ws) {
         
         if (data.type === 'response') {
             await streaming_file_multi_ws_server();
+        }
+
+        if (data.type === 'response_cancel') {
+            console.log("Received ignored")
+            toggle_send_button_loading(false, "Initiate Transfer")
         }
         
         if (data.type === 'transfer_start') {

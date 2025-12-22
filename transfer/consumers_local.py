@@ -125,6 +125,14 @@ class TransferConsumerLocal(AsyncWebsocketConsumer):
                         'message_type': data['type'],
                     }
                 )
+            elif data['type'] == 'response_cancel':
+                await self.channel_layer.group_send(
+                    f"user-control-{data['sender_id']}",
+                    {
+                        'type': 'confirm.or.deny.response.cancel',
+                        'receiver_id': data['receiver_id'],
+                    }
+                )
             elif data['type'] == 'transfer_start':
                 SENDER_RECEIVER_MAP[self.user_id] = data['receiver_id']
                 await self.channel_layer.group_send(
@@ -181,6 +189,11 @@ class TransferConsumerLocal(AsyncWebsocketConsumer):
         receiver_id = event['receiver_id']
         message_type = event['message_type']
         await self.send(text_data=json.dumps({'type':message_type, 'receiver_id':receiver_id}))
+
+    async def confirm_or_deny_response_cancel(self, event):
+        receiver_id = event['receiver_id']
+        await self.send(text_data=json.dumps({'type':'response_cancel', 'receiver_id':receiver_id}))
+
 
     async def file_transfer_start(self, event):
         await self.send(text_data=json.dumps({
