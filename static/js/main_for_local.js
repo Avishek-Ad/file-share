@@ -40,8 +40,18 @@ function setup_ui_listeners() {
     const hide_container_button = document.getElementById('hide-container-button');
 
     hide_container_button.addEventListener('click', () => {
-        document.getElementById('container').classList.add('hidden');
-        send_button.classList.remove('hidden');
+        if (is_transfer_active){
+            console.log("TRANSFER CANCEL CLICKED")
+            ws_control.send(JSON.stringify({
+                'type': 'transfer_cancel',
+                'sender_id': myid,
+                'receiver_id': receiver_id
+            }))
+            is_transfer_active = false
+        } else{
+            document.getElementById('container').classList.add('hidden');
+            send_button.classList.remove('hidden');
+        }
     });
 
     send_button.addEventListener('click', () => {
@@ -66,9 +76,18 @@ function setup_ui_listeners() {
     });
 }
 
-function toggle_send_button_loading(isLoading, text) {
+function toggle_send_button_loading(isLoading, text, is_cancled=false) {
     const btn = document.getElementById('send-file-button');
     btn.disabled = isLoading;
+
+    if (is_cancled){
+        console.log("CANCLED BY RECEIVER")
+        document.getElementById('receiver-cancled-text').classList.remove('hidden')
+        setTimeout(() => {
+            console.log("REMOVED")
+            document.getElementById('receiver-cancled-text').classList.add('hidden')
+        }, 5000);
+    }
 
     if (isLoading) {
         btn.classList.remove('btn-primary', 'shadow-primary/20');
@@ -84,6 +103,10 @@ function toggle_send_button_loading(isLoading, text) {
         btn.classList.remove('bg-slate-800/50', 'text-slate-500', 'border-white/5', 'cursor-not-allowed', 'bg-ghost');
         
         btn.innerHTML = `<span class="uppercase font-bold tracking-tight">${text}</span>`;
+
+        // restore the action of the cancel 
+        is_transfer_active = false // let transfer canceled sender's indicator
+        setup_ui_listeners();
     }
 }
 
@@ -206,7 +229,7 @@ async function setup_control_listeners(ws) {
 
         if (data.type === 'response_cancel') {
             console.log("Received ignored")
-            toggle_send_button_loading(false, "Initiate Transfer")
+            toggle_send_button_loading(false, "Initiate Transfer", true)
         }
         
         if (data.type === 'transfer_start') {
@@ -222,7 +245,7 @@ async function setup_control_listeners(ws) {
         
         if (data.type === 'transfer_cancel') {
             document.getElementById('download-status').innerHTML = `<span class="font-bold text-md text-red-400">Canceled by User-${data['sender_id']}</span>`;
-            reset_transfer_state(10000); 
+            reset_transfer_state(5000); 
         }
 
         if (data.type === "flow_control" && myid === data.sender_id) {
@@ -400,6 +423,10 @@ function update_sender_ui_start() {
                 </span>
             </div>
         </div>`;
+    
+    // show transfer cancel button
+    document.getElementById('hide-container-button').innerHTML = 'Cancel Transfer'
+    document.getElementById('hide-container-button').classList.add('bg-red-500')
 }
 
 function update_sender_ui_success() {
@@ -424,6 +451,10 @@ function update_sender_ui_success() {
         btn.classList.add('btn-primary');
         toggle_send_button_loading(false, 'Initiate Transfer');
     }, 1200);
+
+    // hide transfer cancel button
+    document.getElementById('hide-container-button').innerHTML = 'Cancel'
+    document.getElementById('hide-container-button').classList.remove('bg-red-500')
 }
 
 function handle_online_users(users) {
