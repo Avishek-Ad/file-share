@@ -98,16 +98,25 @@ class TransferConsumer(AsyncWebsocketConsumer):
                     }
                 )
             elif data['type'] == 'request':
-                await self.channel_layer.group_send(
-                    f"user-control-{data['receiver_id']}",
-                    {
-                        'type': 'confirm.or.deny.receive',
-                        'sender_id': data['sender_id'],
-                        'message_type': data['type'],
-                        'filename': data['filename'],
-                        'filesize': data['filesize']
-                    }
-                )
+                if data['receiver_id'] in list(SENDER_RECEIVER_MAP.keys()) or data['receiver_id'] in list(SENDER_RECEIVER_MAP.values()):
+                    print(f"{data['receiver_id']} says i am busy dont disturb me {data['sender_id']}")
+                    await self.channel_layer.group_send(
+                        f"user-control-{data['sender_id']}",
+                        {
+                            'type': 'i.am.busy',
+                        }
+                    )
+                else:
+                    await self.channel_layer.group_send(
+                        f"user-control-{data['receiver_id']}",
+                        {
+                            'type': 'confirm.or.deny.receive',
+                            'sender_id': data['sender_id'],
+                            'message_type': data['type'],
+                            'filename': data['filename'],
+                            'filesize': data['filesize']
+                        }
+                    )
             elif data['type'] == 'response':
                 await self.channel_layer.group_send(
                     f"user-control-{data['sender_id']}",
@@ -134,17 +143,13 @@ class TransferConsumer(AsyncWebsocketConsumer):
                 }
             )
             elif data['type'] == 'transfer_end':
-                await self.channel_layer.group_send(
-                f"user-control-{data['receiver_id']}",
-                {
-                    'type': "file.transfer.end.bin",
-                    'total_received': data['total_received'],
-                }
-            )
+                # the receiver will send a transfer end after successful 
+                del SENDER_RECEIVER_MAP[str(data['sender_id'])]
+
             elif data['type'] == 'transfer_cancel':
                 # print("CANCELED..................")
                 if data['sender_id'] in SENDER_RECEIVER_MAP:
-                    del SENDER_RECEIVER_MAP[data['sender_id']]
+                    del SENDER_RECEIVER_MAP[str(data['sender_id'])]
                 await self.channel_layer.group_send(
                     f"user-control-{data['receiver_id']}",
                     {
@@ -154,6 +159,9 @@ class TransferConsumer(AsyncWebsocketConsumer):
                 )
             else:
                 pass
+    
+    async def i_am_busy(self, event):
+        await self.send(text_data=json.dumps({'type':"i_am_busy"}))
 
     async def online_users(self, event):
         online_users = event['online_users']

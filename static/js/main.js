@@ -78,6 +78,7 @@ function setup_ui_listeners() {
 
 function toggle_send_button_loading(isLoading, text, is_cancled=false) {
     const btn = document.getElementById('send-file-button');
+    const cancel_btn = document.getElementById('hide-container-button');
     btn.disabled = isLoading;
 
     if (is_cancled){
@@ -99,11 +100,13 @@ function toggle_send_button_loading(isLoading, text, is_cancled=false) {
                 <span class="font-mono text-[11px] uppercase tracking-widest">${text}</span>
             </div>`;
     } else {
-        btn.classList.add('text-white', 'btn-primary', 'shadow-lg', 'shadow-primary/20');
-        btn.classList.remove('bg-slate-800/50', 'text-slate-500', 'border-white/5', 'cursor-not-allowed', 'bg-ghost');
+        btn.classList.remove('bg-slate-700/50', 'bg-slate-800/50', 'text-slate-400', 'border-white/5', 'cursor-not-allowed', 'bg-ghost');
+        btn.classList.add('text-white', 'btn', 'btn-primary', 'shadow-lg', 'shadow-primary/20');
         
         btn.innerHTML = `<span class="uppercase font-bold tracking-tight">${text}</span>`;
 
+        cancel_btn.classList.remove('bg-red-500')
+        cancel_btn.innerHTML = "Cancel"
         // restore the action of the cancel 
         is_transfer_active = false // let transfer canceled sender's indicator
         setup_ui_listeners();
@@ -256,6 +259,18 @@ async function setup_control_listeners(ws) {
         if (data.type === "flow_control" && myid === data.sender_id) {
             handle_flow_control_update(data);
         }
+
+        if (data.type === "i_am_busy") {
+            // the sender will get this "busy" when receiver is busy
+            document.getElementById('receiver-cancled-text').classList.remove('hidden')
+            document.getElementById('receiver-cancled-text').innerHTML = "Receiver Busy" 
+            setTimeout(() => {
+                console.log("REMOVED")
+                document.getElementById('receiver-cancled-text').innerHTML = "Receiver Cancled"
+                document.getElementById('receiver-cancled-text').classList.add('hidden')
+                toggle_send_button_loading(false, "Initiate Transfer")
+            }, 5000);
+        }
     };
 }
 
@@ -367,13 +382,10 @@ async function streaming_file_multi_ws_server() {
         await new Promise(r => setTimeout(r, 50));
     }
 
-    ws_control.send(JSON.stringify({
-        'type': "transfer_end",
-        'receiver_id': receiver_id,
-        'total_received': file_to_transfer.size
-    }));
-
-    update_sender_ui_success();
+    // if there is no receiver_id then the transfer was cancled
+    if (receiver_id){
+        update_sender_ui_success();
+    }
 }
 
 async function paceSend(chunk_size) {
@@ -394,10 +406,36 @@ async function reassemble_and_download() {
     is_transfer_active = false;
     stop_feedback_loop();
     await writable.close();
+    // the receiver will send a signal to server saying the transfer endeed remove me and sender
+    // from the SENDER_RECEIVER_MAP
+    ws_control.send(JSON.stringify({
+        'type': "transfer_end",
+        'receiver_id': receiver_id,
+        'sender_id': sender_id,
+    }));
     
     const statusEl = document.getElementById('download-status');
     if (statusEl) statusEl.innerText = 'Download complete ✔';
     
+    reset_transfer_state(5000);
+}
+
+async function cannot_find_sender(){
+    
+    if (is_transfer_active){
+        stop_feedback_loop();
+        await writable.close();
+        const statusEl = document.getElementById('download-status');
+        statusEl.classList.add('text-red-500')
+        if (statusEl) statusEl.innerHTML = 'No Sender Found';
+    }
+    
+    reset_transfer_state(2000);
+}
+
+async function cannot_find_receiver(){
+    
+    toggle_send_button_loading(false, "Initiate Transfer", true)
     reset_transfer_state(5000);
 }
 
@@ -406,6 +444,8 @@ function reset_transfer_state(delay = 0) {
     is_transfer_active = false;
     stop_feedback_loop();
     total_received_bytes = 0;
+    sender_id = null
+    receiver_id = null
     
     setTimeout(() => {
         reset_confirm_or_deny_container_content();
@@ -463,6 +503,22 @@ function update_sender_ui_success() {
 }
 
 function handle_online_users(users) {
+    if (sender_id){
+        let found_sender = users.find(user_id => user_id === String(sender_id))
+        if (!found_sender){
+            // stop receiving and reset everything
+            console.log("CANNOT FIND SENDER")
+            cannot_find_sender();
+        }
+    }
+    if (receiver_id){
+        let found_receiver = users.find(user_id => user_id === String(receiver_id))
+        if (!found_receiver){
+            // stop sending data and reset everything
+            console.log("CANNOT FIND RECEIVER")
+            cannot_find_receiver();
+        }
+    }
     if (users.length <= 1) {
         document.getElementById('container').classList.add('hidden');
         document.getElementById('all-users').innerHTML = 'No users found';
